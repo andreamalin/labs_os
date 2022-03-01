@@ -10,8 +10,9 @@ int main(int argc, char const *argv[])
     double time;
     int million = 1000000;
 
-    start = clock();
     
+    start = clock();
+    printf("start %f s\n", (double)start);
     // hijo
     fork1 = fork();
 
@@ -22,21 +23,30 @@ int main(int argc, char const *argv[])
             // 3er hijo
             fork3 = fork();
             if (fork3 == 0) {
-                for (int i = 0; i < million; i++) {}
+                for (int i = 0; i < million; i++) {
+                    printf("Ciclo 1 %d\n", i);
+                }
             } else {
-                for (int i = 0; i < million; i++) {}
+                for (int i = 0; i < million; i++) {
+                    printf("Ciclo 2 %d\n", i);
+                }
                 wait(NULL);
             } 
         } else {
-            for (int i = 0; i < million; i++) {}
+            for (int i = 0; i < million; i++) {
+                printf("Ciclo 3 %d\n", i);
+            }
             wait(NULL);
         }
     } else {
         wait(NULL);
-
         end = clock();
-        time = (double)(end - start);
-        printf("El tiempo final es de %f ms\n", time);
+        printf("end %f s\n", (double)end);
+        time = (double)(end - start)/CLOCKS_PER_SEC;
+    
+
+        printf("El tiempo final es de %f s\n", time);
+    
     }
 
     return 0;
