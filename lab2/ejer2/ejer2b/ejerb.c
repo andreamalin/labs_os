@@ -24,17 +24,14 @@ int main(int argc, char const *argv[])
             fork3 = fork();
             if (fork3 == 0) {
                 for (int i = 0; i < million; i++) {
-                    printf("Ciclo 1 %d\n", i);
                 }
             } else {
                 for (int i = 0; i < million; i++) {
-                    printf("Ciclo 2 %d\n", i);
                 }
                 wait(NULL);
             } 
         } else {
             for (int i = 0; i < million; i++) {
-                printf("Ciclo 3 %d\n", i);
             }
             wait(NULL);
         }
