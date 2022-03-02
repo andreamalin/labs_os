@@ -22,13 +22,13 @@ int main(int argc, char*argv[])
     // Obteniendo los argumentos
     int n = strtol(argv[1], NULL, 0);
     // Shared memory
-    int SIZE = 10;
+    int SIZE = 4096;
     int currentPos = 0;
     // Pipes
     int b[2];
     pipe(b);
     // File descriptor
-    int fd = open("./file1.txt", O_RDWR, S_IRUSR | S_IWUSR);
+    int fd = shm_open("test", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     struct stat sb;
     if (fstat(fd, &sb) == -1)
     {
@@ -36,8 +36,16 @@ int main(int argc, char*argv[])
 
         return 1;
     }
+    printf("%d\n", sb.st_size);
+    if (sb.st_size != 0) {
+        SIZE = sb.st_size;
+    }
+    printf("SIZE %d\n", SIZE);
+
+    ftruncate(fd, SIZE);
+
     // Shared memory
-    char *shared_memory = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE,
+    void *shared_memory = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
                                     MAP_SHARED,
                                     fd, 0 );
 
@@ -52,7 +60,8 @@ int main(int argc, char*argv[])
 
             // Si es valor 1, significa que escribimos en la memoria
             if (x == 1) {
-                shared_memory[currentPos] = argv[2][0];
+                sprintf(shared_memory, "%s", argv[2]);
+                shared_memory += strlen(argv[2]);
                 currentPos++;
             }
             sleep(1);
@@ -61,7 +70,7 @@ int main(int argc, char*argv[])
         close(b[1]); // Cerramos escritura
     } else {
         // Padre
-        for (int i = 0; i < SIZE; i++)
+        for (int i = 0; i < 10; i++)
         {
             int value = 0;
             if (i % n == 0) {
@@ -72,7 +81,10 @@ int main(int argc, char*argv[])
             write(b[1], (char*)&value, sizeof(int));
             sleep(2);
         }
-        printf("Memoria compartida: %s\n", shared_memory);
+        printf("sale for\n");
+        printf("%s\n", (char*)shared_memory);
+
+        shm_unlink("test");
     }
 
     return 0;
