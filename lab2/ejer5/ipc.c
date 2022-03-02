@@ -4,9 +4,16 @@
 
 int main(int argc, char const *argv[])
 {
+
+    // Progra defensiva
+    if (argc < 3) {
+        printf("Faltan argumentos\n");
+        exit(1);
+    }
+
     // Obteniendo los argumentos
-    int n = (int)argv[0];
-    const char *x = argv[1];
+    int n = (int)argv[1];
+    const char *x = argv[2];
     // Shared memory
     int SIZE = 20;
     int updateSharedMemory = 0;
@@ -35,6 +42,7 @@ int main(int argc, char const *argv[])
         if (updateSharedMemory == 1) {
             shared_memory[currentPos] = x;
             currentPos++;
+            updateSharedMemory = 0;
         }
     } else {
         // Padre
