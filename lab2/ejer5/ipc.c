@@ -12,7 +12,6 @@
 
 int main(int argc, char*argv[])
 {
-
     // Progra defensiva
     if (argc < 3) {
         printf("Faltan argumentos\n");
@@ -27,6 +26,7 @@ int main(int argc, char*argv[])
     // Pipes
     int b[2];
     pipe(b);
+
     // File descriptor
     int fd = shm_open("test", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     struct stat sb;
@@ -36,12 +36,15 @@ int main(int argc, char*argv[])
 
         return 1;
     }
+
+    // Checkeamos y asignamos un tamano si es 0
     printf("%d\n", sb.st_size);
     if (sb.st_size != 0) {
         SIZE = sb.st_size;
     }
     printf("SIZE %d\n", SIZE);
 
+    // Asignamos el valor al objeto de la memoria compartida
     ftruncate(fd, SIZE);
 
     // Shared memory
@@ -55,6 +58,7 @@ int main(int argc, char*argv[])
         // Hijo
         
         while(1) {
+            // Leo el valor y guardo en x
             int x = 0;
             read(b[0], (char*)&x, sizeof(int));
 
@@ -78,12 +82,14 @@ int main(int argc, char*argv[])
                 value = 1;
             }
     
+            // Mando valor y espero al hijo
             write(b[1], (char*)&value, sizeof(int));
             sleep(2);
         }
-        printf("sale for\n");
-        printf("%s\n", (char*)shared_memory);
 
+        // Termina el ciclo
+        printf("Valor final en la memoria compartida: %s\n", (char*)shared_memory);
+        // Remover la memoria cmpartida
         shm_unlink("test");
     }
 
