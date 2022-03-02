@@ -52,7 +52,7 @@ int main(int argc, char*argv[])
 
             // Si es valor 1, significa que escribimos en la memoria
             if (x == 1) {
-                shared_memory[currentPos] = argv[2];
+                shared_memory[currentPos] = argv[2][0];
                 currentPos++;
             }
             sleep(1);
