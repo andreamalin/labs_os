@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int main() {
     int f1 = fork();
@@ -9,6 +11,5 @@ int main() {
     } else {
         wait(NULL);
         execl("./ipc", "./ipc", "2", "b", (char*)NULL);
-        shm_unlink("test");
     }
 }
