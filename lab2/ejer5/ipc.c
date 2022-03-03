@@ -28,27 +28,24 @@ int main(int argc, char*argv[])
     pipe(b);
 
     // File descriptor
-    int fd = shm_open("test", O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    int fd = shm_open("test", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     struct stat sb;
-    
-    printf("%s: fd %d\n", argv[2], fd);
     if (fstat(fd, &sb) == -1)
-    {   
-        shm_unlink("test");
-        printf("%s: File descriptor ya existe\n", argv[2]);
-        fd = shm_open("test", O_RDWR, S_IRUSR | S_IWUSR);
-        printf("%d: File descriptor ya existe\n", fd);
-    } else {
-        // Checkeamos y asignamos un tamano si es 0
-        printf("%s: st_size %d\n", argv[2], sb.st_size);
-        if (sb.st_size != 0 && sb.st_size <= SIZE) {
-            SIZE = sb.st_size;
-        }
-        printf("%s: SIZE %d\n", argv[2], SIZE);
+    {
+        printf("Error producido en file descriptor %s\n", strerror(errno));
 
-        // Asignamos el valor al objeto de la memoria compartida
-        ftruncate(fd, SIZE);
+        return 1;
     }
+
+    // Checkeamos y asignamos un tamano si es 0
+    printf("%s: Valor inicial file descriptor%d\n", argv[2], sb.st_size);
+    if (sb.st_size != 0) {
+        SIZE = sb.st_size;
+    }
+    printf("%s: Valor final file descriptor %d\n", argv[2], SIZE);
+
+    // Asignamos el valor al objeto de la memoria compartida
+    ftruncate(fd, SIZE);
 
     // Shared memory
     void *shared_memory = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
@@ -59,7 +56,7 @@ int main(int argc, char*argv[])
     int f1 = fork();
     if (f1 == 0) {
         // Hijo
-        
+        shared_memory += strlen((char*)shared_memory);
         while(1) {
             // Leo el valor y guardo en x
             int x = 0;
@@ -90,8 +87,9 @@ int main(int argc, char*argv[])
             sleep(2);
         }
 
-        // Termina el ciclo
-        printf("%s: Valor final en la memoria compartida con: %s\n", argv[2], (char*)shared_memory);
+        printf("%s: Valor final en la memoria compartida: %s\n", argv[2], (char*)shared_memory);
+        // Remover la memoria cmpartida
+        // shm_unlink("test");
     }
 
     return 0;
