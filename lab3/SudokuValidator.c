@@ -1,8 +1,48 @@
 #include <stdio.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int main(int argc, char const *argv[])
 {
+    int sudoku[9][9];
+    // Shared memory
+    int SIZE = 4096;
+    // File
+    int fd = open(argv[1], O_RDONLY, 0666);
+
+    struct stat sb;
+    if (fstat(fd, &sb) == -1)
+    {
+        printf("Error producido en file %s\n", strerror(errno));
+
+        return 1;
+    }
+
+    // Checkeamos y asignamos un tamano si es 0
+    if (sb.st_size != 0) {
+        SIZE = sb.st_size;
+    }
+    // Asignamos el valor al objeto de la memoria compartida
+    ftruncate(fd, SIZE);
+
+    // Shared memory
+    char* opened_file = mmap(NULL, SIZE, PROT_READ, MAP_PRIVATE,fd, 0 );
+
+
+    for (int i = 0; i < 81; i++)
+    {
+        printf("%s\n", opened_file[0]);
+        // sudoku[i / 9][i % 9] = strtol(opened_file[i], NULL, 0);
+    }
+    
+    /*
     int sudoku[9][9] = {
         {1, 2, 3, 4, 6, 9, 7, 5, 8},
         {8, 4, 6, 5, 7, 1, 2, 9, 3},
@@ -13,7 +53,7 @@ int main(int argc, char const *argv[])
         {2, 3, 4, 6, 1, 5, 9, 8, 7},
         {6, 8, 1, 9, 3, 7, 5, 2, 4},
         {7, 9, 5, 8, 2, 4, 3, 1, 6}
-    };
+    };*/
 
     checkGrid(sudoku);
     checkColumn(sudoku);
