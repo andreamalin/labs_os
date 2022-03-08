@@ -9,23 +9,33 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pthread.h>
+#include <omp.h>
 #include <sys/syscall.h>
 
+int sudoku[9][9];
 
 // Columna
-void *checkColumn(int sudoku[9][9]) {
+void *checkColumn(void *threadNumber) {
     int cells[9];
+	unsigned int tid = 0;
 
+	#pragma omp parallel for ordered private(tid)
     for (int i = 0; i < 9; i++)
     {
+        tid = omp_get_thread_num();
+        printf("Programa en paralelo: thread: %d %d\n", tid, syscall(SYS_gettid));
+
         // Se obtiene una columna
+        #pragma omp ordered
         for (int j = 0; j < 9; j++)
         {
             cells[j] = sudoku[j][i];
         }
-     
+    
         int checkNumbers[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        
         // Por celda en la columna
+        #pragma omp ordered
         for (int cell = 0; cell < 9; cell++)
         {
             // Por cada numero en los numeros
@@ -41,30 +51,37 @@ void *checkColumn(int sudoku[9][9]) {
         }
 
         // Por celda en la columna
+        #pragma omp ordered
         for (int cell = 0; cell < 9; cell++)
         {
             if (checkNumbers[cell] != -1) {
-                printf("Alguna columna NO contiene todos los numeros 1-9\n");
+                printf("\n------\nAlguna columna NO contiene todos los numeros 1-9\n------\n");
                 // La columna NO contiene todos los numeros del 1 al 9 
-                return NULL;
+                pthread_exit(NULL);
             }
         }
         
     }
-
-    printf("Todas las columnas contienen los numeros 1-9\n");
+    
+    printf("\n------\nTodas las columnas contienen los numeros 1-9\n------\n");
     // Todas las columnas contienen todos los numeros del 1 al 9 
-    return NULL; // True
+    pthread_exit(NULL);
 }
 
 
 // Fila
-void *checkRow(int sudoku[9][9]) {
+int checkRow() {
+	unsigned int tid = 0;
     int cells[9];
 
+	#pragma omp parallel for ordered private(tid)
     for (int i = 0; i < 9; i++)
     {
+        tid = omp_get_thread_num();
+        printf("Programa en paralelo: thread: %d %d\n", tid, syscall(SYS_gettid));
+
         // Se obtiene una fila
+        #pragma omp ordered
         for (int j = 0; j < 9; j++)
         {
             cells[j] = sudoku[i][j];
@@ -73,6 +90,7 @@ void *checkRow(int sudoku[9][9]) {
         int checkNumbers[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
         // Por celda en la fila
+        #pragma omp ordered
         for (int cell = 0; cell < 9; cell++)
         {
             // Por cada numero en los numeros
@@ -88,30 +106,32 @@ void *checkRow(int sudoku[9][9]) {
         }
 
         // Por celda en la fila
+        #pragma omp ordered
         for (int cell = 0; cell < 9; cell++)
         {
             if (checkNumbers[cell] != -1) {
-                printf("Alguna fila NO contiene todos los numeros 1-9\n");
-                // La fila NO contiene todos los numeros del 1 al 9 
-                return NULL;
+                printf("\n------\nAlguna fila NO contiene todos los numeros 1-9\n------\n");
             }
         }
         
     }
 
-    printf("Todas las filas contienen los numeros 1-9\n");
-    // Todas las filas contienen todos los numeros del 1 al 9 
-    return NULL; // True
+    printf("\n------\nTodas las filas contienen los numeros 1-9\n------\n");
 }
 
 
 // Cuadricula 3x3
-void *checkGrid(int sudoku[9][9]) {
+int checkGrid() {
+	unsigned int tid = 0;
     int cells[9];
 
+	#pragma omp parallel for ordered private(tid)
     // Nos vamos moviendo por filas
     for (int contadorFilas = 0; contadorFilas < 9; contadorFilas+=3)
-    {
+    {   
+        tid = omp_get_thread_num();
+        printf("Programa en paralelo: thread: %d %d\n", tid, syscall(SYS_gettid));
+
         // Nos vamos moviendo por columnas
         for (int contadorColumna = 0; contadorColumna < 9; contadorColumna+=3)
         {
@@ -119,6 +139,7 @@ void *checkGrid(int sudoku[9][9]) {
             int contador = 0;
             
             // Se obtiene una fila
+            #pragma omp ordered
             for (int i = 0; i < 3; i++)
             {
                 // Se obtiene una columna
@@ -131,6 +152,7 @@ void *checkGrid(int sudoku[9][9]) {
             }
 
             // Todas las posiciones de las celdas
+            #pragma omp ordered
             for (int i = 0; i < 9; i++) {
                 int checkNumbers[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
                 // Por celda en la cuadricula
@@ -152,21 +174,18 @@ void *checkGrid(int sudoku[9][9]) {
                 for (int cell = 0; cell < 9; cell++)
                 {
                     if (checkNumbers[cell] != -1) {
-                        printf("Alguna cuadricula NO contiene todos los numeros 1-9\n");
+                        printf("\n------\nAlguna cuadricula NO contiene todos los numeros 1-9\n------\n");
                         // La cuadricula NO contiene todos los numeros del 1 al 9 
-                        return NULL;
                     }
                 }   
             }
         }
     }
    
-    printf("Todas las cuadriculas contienen los numeros 1-9\n");
+    printf("\n------\nTodas las cuadriculas contienen los numeros 1-9\n------\n");
     // Todas las cuadriculas contienen todos los numeros del 1 al 9 
-    return NULL; // True
 }
 
-int sudoku[9][9];
 int main(int argc, char const *argv[])
 {
     // Shared memory
@@ -210,9 +229,28 @@ int main(int argc, char const *argv[])
         printf("\n");
     } else {
         pthread_t tid;
-        pthread_create(&tid, NULL, checkColumn(sudoku), (void*)&tid);
+        pthread_create(&tid, NULL, checkColumn, (void*)&tid);
         pthread_join(tid, NULL);
-        syscall(SYS_gettid);
+        printf("Num de thread %d\n", syscall(SYS_gettid));
+        wait(NULL);
     }
+
+    checkRow();
+    checkGrid();
+
+        
+    printf("Numero del proceso padre %d\n", (int)getppid());
+
+    int f2 = fork();
+
+    if (f2 == 0) {
+        char parentID[10];
+        sprintf(parentID, "%d", (int)getppid());
+        execlp("ps", "ps", "-p", parentID, "-lLf", (char*)NULL);
+        printf("\n");
+    } else {
+        wait(NULL);
+    }
+
     return 0;
 }

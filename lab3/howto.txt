@@ -1,0 +1,2 @@
+gcc SudokuValidator.c -o SudokuValidator -lrt -lpthread
+./SudokuValidator "sudoku"
