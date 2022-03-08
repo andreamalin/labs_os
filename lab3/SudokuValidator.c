@@ -19,6 +19,8 @@ void *checkColumn(void *threadNumber) {
     int cells[9];
 	unsigned int tid = 0;
 
+    omp_set_nested(1);
+    omp_set_num_threads(9);
 	#pragma omp parallel for ordered private(tid)
     for (int i = 0; i < 9; i++)
     {
@@ -26,6 +28,7 @@ void *checkColumn(void *threadNumber) {
         printf("Programa en paralelo: thread: %d %d\n", tid, syscall(SYS_gettid));
 
         // Se obtiene una columna
+        omp_set_nested(1);
         #pragma omp ordered
         for (int j = 0; j < 9; j++)
         {
@@ -35,6 +38,7 @@ void *checkColumn(void *threadNumber) {
         int checkNumbers[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         
         // Por celda en la columna
+        omp_set_nested(1);
         #pragma omp ordered
         for (int cell = 0; cell < 9; cell++)
         {
@@ -51,6 +55,7 @@ void *checkColumn(void *threadNumber) {
         }
 
         // Por celda en la columna
+        omp_set_nested(1);
         #pragma omp ordered
         for (int cell = 0; cell < 9; cell++)
         {
@@ -74,7 +79,10 @@ int checkRow() {
 	unsigned int tid = 0;
     int cells[9];
 
+    omp_set_num_threads(9);
+    omp_set_nested(1);
 	#pragma omp parallel for ordered private(tid)
+    
     for (int i = 0; i < 9; i++)
     {
         tid = omp_get_thread_num();
@@ -82,6 +90,7 @@ int checkRow() {
 
         // Se obtiene una fila
         #pragma omp ordered
+        omp_set_nested(1);
         for (int j = 0; j < 9; j++)
         {
             cells[j] = sudoku[i][j];
@@ -91,6 +100,7 @@ int checkRow() {
 
         // Por celda en la fila
         #pragma omp ordered
+        omp_set_nested(1);
         for (int cell = 0; cell < 9; cell++)
         {
             // Por cada numero en los numeros
@@ -107,6 +117,7 @@ int checkRow() {
 
         // Por celda en la fila
         #pragma omp ordered
+        omp_set_nested(1);
         for (int cell = 0; cell < 9; cell++)
         {
             if (checkNumbers[cell] != -1) {
@@ -125,6 +136,8 @@ int checkGrid() {
 	unsigned int tid = 0;
     int cells[9];
 
+    omp_set_num_threads(3);
+    omp_set_nested(1);
 	#pragma omp parallel for ordered private(tid)
     // Nos vamos moviendo por filas
     for (int contadorFilas = 0; contadorFilas < 9; contadorFilas+=3)
@@ -139,6 +152,8 @@ int checkGrid() {
             int contador = 0;
             
             // Se obtiene una fila
+            omp_set_num_threads(3);
+            omp_set_nested(1);
             #pragma omp ordered
             for (int i = 0; i < 3; i++)
             {
@@ -152,6 +167,8 @@ int checkGrid() {
             }
 
             // Todas las posiciones de las celdas
+            omp_set_num_threads(9);
+            omp_set_nested(1);
             #pragma omp ordered
             for (int i = 0; i < 9; i++) {
                 int checkNumbers[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -188,6 +205,7 @@ int checkGrid() {
 
 int main(int argc, char const *argv[])
 {
+    omp_set_num_threads(1);
     // Shared memory
     int SIZE = 4096;
     // File
