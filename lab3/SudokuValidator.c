@@ -38,22 +38,8 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < 81; i++)
     {
-        printf("%s\n", opened_file[0]);
-        // sudoku[i / 9][i % 9] = strtol(opened_file[i], NULL, 0);
+        sudoku[i / 9][i % 9] = opened_file[i] - '0';
     }
-    
-    /*
-    int sudoku[9][9] = {
-        {1, 2, 3, 4, 6, 9, 7, 5, 8},
-        {8, 4, 6, 5, 7, 1, 2, 9, 3},
-        {9, 5, 7, 2, 8, 3, 6, 4, 1},
-        {3, 1, 2, 7, 5, 8, 4, 6, 9},
-        {4, 6, 8, 3, 9, 2, 1, 7, 5},
-        {5, 7, 9, 1, 4, 6, 8, 3, 2},
-        {2, 3, 4, 6, 1, 5, 9, 8, 7},
-        {6, 8, 1, 9, 3, 7, 5, 2, 4},
-        {7, 9, 5, 8, 2, 4, 3, 1, 6}
-    };*/
 
     checkGrid(sudoku);
     checkColumn(sudoku);
